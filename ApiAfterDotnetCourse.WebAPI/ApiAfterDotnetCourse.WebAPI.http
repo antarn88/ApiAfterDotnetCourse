@@ -1,0 +1,6 @@
+@ApiAfterDotnetCourse.WebAPI_HostAddress = http://localhost:5080
+
+GET {{ApiAfterDotnetCourse.WebAPI_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
