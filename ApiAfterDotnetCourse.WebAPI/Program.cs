@@ -1,3 +1,7 @@
+using ApiAfterDotnetCourse.Data;
+using ApiAfterDotnetCourse.Data.Entities;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiAfterDotnetCourse.WebAPI
 {
@@ -7,16 +11,31 @@ namespace ApiAfterDotnetCourse.WebAPI
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            builder.Services.AddDbContext<ApiAfterDotnetCourseDBContext>(options =>
+            {
+                options.UseSqlServer(builder.Configuration.GetConnectionString("ApiAfterDotnetCourseDB"));
+            });
+
+            builder.Services.AddIdentity<ApplicationUser, IdentityRole<int>>()
+               .AddEntityFrameworkStores<ApiAfterDotnetCourseDBContext>()
+               .AddDefaultTokenProviders();
+
+            // Identity szabályok
+            builder.Services.Configure<IdentityOptions>(options =>
+            {
+                options.Password.RequireDigit = false;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(5);
+                options.Lockout.MaxFailedAccessAttempts = 5;
+                options.User.RequireUniqueEmail = false;
+                options.SignIn.RequireConfirmedAccount = true;
+            });
 
             builder.Services.AddControllers();
-            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
             if (app.Environment.IsDevelopment())
             {
                 app.UseSwagger();
@@ -25,8 +44,9 @@ namespace ApiAfterDotnetCourse.WebAPI
 
             app.UseHttpsRedirection();
 
+            // app.UseRouting(); // TODO Ez kell?
+            // app.UseAuthentication(); // TODO Ez kell?
             app.UseAuthorization();
-
 
             app.MapControllers();
 
