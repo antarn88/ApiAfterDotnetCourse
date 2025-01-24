@@ -43,13 +43,9 @@ namespace ApiAfterDotnetCourse.WebAPI
             }
 
             app.UseHttpsRedirection();
-
-            // app.UseRouting(); // TODO Ez kell?
-            // app.UseAuthentication(); // TODO Ez kell?
+            app.UseAuthentication();
             app.UseAuthorization();
-
             app.MapControllers();
-
             app.Run();
         }
     }
