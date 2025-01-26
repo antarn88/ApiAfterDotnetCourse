@@ -1,8 +1,8 @@
 using System.Net;
 using System.Net.Mail;
 using ApiAfterDotnetCourse.WebAPI.Settings;
-using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Identity.UI.Services;
 
 namespace ApiAfterDotnetCourse.WebAPI.Services;
 

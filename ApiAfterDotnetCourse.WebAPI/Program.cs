@@ -1,3 +1,5 @@
+using ApiAfterDotnetCourse.Bll.Interfaces;
+using ApiAfterDotnetCourse.Bll.Services;
 using ApiAfterDotnetCourse.Data;
 using ApiAfterDotnetCourse.Data.Entities;
 using ApiAfterDotnetCourse.Data.Interfaces;
@@ -46,6 +48,7 @@ namespace ApiAfterDotnetCourse.WebAPI
             // Service-ek
             builder.Services.AddScoped<IRoleSeedService, RoleSeedService>();
             builder.Services.AddScoped<IUserSeedService, UserSeedService>();
+            builder.Services.AddScoped<IUserService, UserService>();
 
             var app = builder.Build();
 
