@@ -1,13 +1,18 @@
 using ApiAfterDotnetCourse.Data;
 using ApiAfterDotnetCourse.Data.Entities;
+using ApiAfterDotnetCourse.Data.Interfaces;
+using ApiAfterDotnetCourse.Data.SeedIdentityData;
+using ApiAfterDotnetCourse.WebAPI.Services;
+using ApiAfterDotnetCourse.WebAPI.Settings;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiAfterDotnetCourse.WebAPI
 {
     public class Program
     {
-        public static void Main(string[] args)
+        public static async Task Main(string[] args)
         {
             var builder = WebApplication.CreateBuilder(args);
 
@@ -34,7 +39,23 @@ namespace ApiAfterDotnetCourse.WebAPI
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
 
+            // MailSettings
+            builder.Services.Configure<MailSettings>(builder.Configuration.GetSection("MailSettings"));
+            builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+            // Service-ek
+            builder.Services.AddScoped<IRoleSeedService, RoleSeedService>();
+            builder.Services.AddScoped<IUserSeedService, UserSeedService>();
+
             var app = builder.Build();
+
+            // Role-ok seedelése
+            var roleSeeder = app.Services.CreateScope().ServiceProvider.GetRequiredService<IRoleSeedService>();
+            await roleSeeder.SeedRoleAsync();
+
+            // Userek seedelése
+            var userSeeder = app.Services.CreateScope().ServiceProvider.GetRequiredService<IUserSeedService>();
+            await userSeeder.SeedUserAsync();
 
             if (app.Environment.IsDevelopment())
             {
