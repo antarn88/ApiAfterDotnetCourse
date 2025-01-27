@@ -62,14 +62,31 @@ namespace ApiAfterDotnetCourse.WebAPI
 
             if (app.Environment.IsDevelopment())
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                app.UseSwagger(options =>
+                {
+                    // Az alábbi beállítással törölheted a felesleges végpontokat
+                    options.PreSerializeFilters.Add((swaggerDoc, httpRequest) =>
+                    {
+                        // Például eltávolítjuk a '/' végpontot a Swagger dokumentációból
+                        var path = "/"; // vagy a konkrét nem kívánt végpontot
+                        swaggerDoc.Paths.Remove(path);
+                    });
+                });
+
+                app.UseSwaggerUI(options =>
+                {
+                    options.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1");
+                    options.RoutePrefix = string.Empty; // A Swagger UI alapértelmezett URL-je
+                });
             }
 
             app.UseHttpsRedirection();
             app.UseAuthentication();
             app.UseAuthorization();
             app.MapControllers();
+
+            app.MapGet("/", () => Results.Redirect("/swagger"));
+
             app.Run();
         }
     }

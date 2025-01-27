@@ -59,7 +59,7 @@ public class UserService : IUserService
 
         // E-mail megerősítés link generálás és küldés
         var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-        var confirmationLink = generateConfirmationLink(user.Id.ToString(), token);
+        var confirmationLink = generateConfirmationLink(user.Id.ToString(), Uri.EscapeDataString(token));
 
         await _emailSender.SendEmailAsync(user.Email, "Confirm your email", $"Please confirm your account by <a href='{confirmationLink}'>clicking here</a>.");
 

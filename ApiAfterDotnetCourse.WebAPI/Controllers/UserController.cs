@@ -1,5 +1,7 @@
 using ApiAfterDotnetCourse.Bll.Dtos;
 using ApiAfterDotnetCourse.Bll.Interfaces;
+using ApiAfterDotnetCourse.Data.Entities;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ApiAfterDotnetCourse.WebAPI.Controllers;
@@ -10,11 +12,13 @@ public class UserController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IConfiguration _configuration;
+    private readonly UserManager<ApplicationUser> _userManager;
 
-    public UserController(IUserService userService, IConfiguration configuration)
+    public UserController(IUserService userService, IConfiguration configuration, UserManager<ApplicationUser> userManager)
     {
         _userService = userService;
         _configuration = configuration;
+        _userManager = userManager;
     }
 
     [HttpGet]
@@ -27,11 +31,11 @@ public class UserController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
     {
-        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "https://localhost:5001";
+        var baseUrl = _configuration["AppSettings:BaseUrl"] ?? "https://localhost:7264";
 
         var result = await _userService.RegisterUserAsync(dto, (userId, token) =>
         {
-            return $"{baseUrl}/api/users/confirm-email?userId={userId}&token={Uri.EscapeDataString(token)}";
+            return $"{baseUrl}/api/User/confirm-email?userId={userId}&token={Uri.EscapeDataString(token)}";
         });
 
         if (result.Succeeded)
@@ -42,22 +46,22 @@ public class UserController : ControllerBase
         return BadRequest(result.Errors.Select(e => e.Description));
     }
 
-    // [HttpGet("confirm-email")]
-    // public async Task<IActionResult> ConfirmEmail(string userId, string token)
-    // {
-    //     var user = await _userService.GetUserByIdAsync(int.Parse(userId));
+    [HttpGet("confirm-email")]
+    public async Task<IActionResult> ConfirmEmail(string userId, string token)
+    {
+        if (string.IsNullOrEmpty(userId) || string.IsNullOrEmpty(token)) return BadRequest("UserId or token is missing.");
 
-    //     if (user == null) return BadRequest("Invalid user ID.");
+        var user = await _userManager.FindByIdAsync(userId);
 
-    //     var result = await _userService.ConfirmEmailAsync(user, token);
+        if (user == null)
+            return NotFound("User not found.");
 
-    //     if (result.Succeeded)
-    //     {
-    //         return Ok("Email confirmed successfully.");
-    //     }
+        token = Uri.UnescapeDataString(token); // Dekódolás szükséges lehet
 
-    //     return BadRequest("Invalid token.");
-    // }
+        var result = await _userManager.ConfirmEmailAsync(user, token);
+
+        if (result.Succeeded) return Content("Email confirmed successfully.");
+
+        return BadRequest("Invalid token or email confirmation failed.");
+    }
 }
-
-
