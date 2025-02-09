@@ -9,6 +9,8 @@ using ApiAfterDotnetCourse.WebAPI.Settings;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace ApiAfterDotnetCourse.WebAPI
 {
@@ -49,6 +51,24 @@ namespace ApiAfterDotnetCourse.WebAPI
             builder.Services.AddScoped<IRoleSeedService, RoleSeedService>();
             builder.Services.AddScoped<IUserSeedService, UserSeedService>();
             builder.Services.AddScoped<IUserService, UserService>();
+
+            // JWT tokengenerálás
+            builder.Services.AddAuthentication()
+                .AddJwtBearer(options =>
+                {
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidateIssuer = true,
+                        ValidateAudience = true,
+                        ValidateLifetime = true,
+                        ValidateIssuerSigningKey = true,
+                        ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                        ValidAudience = builder.Configuration["Jwt:Audience"],
+                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Secret"]!))
+                    };
+                });
+
+            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 

@@ -21,6 +21,7 @@ public class UserController : ControllerBase
         _userManager = userManager;
     }
 
+    // Összes user lekérdezése végpont
     [HttpGet]
     public async Task<IActionResult> GetUsers()
     {
@@ -28,6 +29,7 @@ public class UserController : ControllerBase
         return Ok(users);
     }
 
+    // User regisztrációs végpont
     [HttpPost]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserDto dto)
     {
@@ -46,6 +48,7 @@ public class UserController : ControllerBase
         return BadRequest(result.Errors.Select(e => e.Description));
     }
 
+    // Email megerősítés végpont
     [HttpGet("confirm-email")]
     public async Task<IActionResult> ConfirmEmail(string userId, string token)
     {
