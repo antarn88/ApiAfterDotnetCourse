@@ -2,8 +2,10 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using ApiAfterDotnetCourse.Bll.Dtos;
+using ApiAfterDotnetCourse.Bll.Interfaces;
 using ApiAfterDotnetCourse.Data.Entities;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.UI.Services;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 
@@ -16,15 +18,21 @@ public class AuthController : ControllerBase
     private readonly SignInManager<ApplicationUser> _signInManager;
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IConfiguration _configuration;
+    private readonly IEmailSender _emailSender;
+    private readonly IUserService _userService;
 
     public AuthController(
         SignInManager<ApplicationUser> signInManager,
         UserManager<ApplicationUser> userManager,
-        IConfiguration configuration)
+        IConfiguration configuration,
+        IEmailSender emailSender,
+        IUserService userService)
     {
         _signInManager = signInManager;
         _userManager = userManager;
         _configuration = configuration;
+        _emailSender = emailSender;
+        _userService = userService;
     }
 
     [HttpPost("login")]
@@ -79,5 +87,71 @@ public class AuthController : ControllerBase
         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
+    }
+
+    // 1. Elfelejtett jelszó kérés (email kiküldése tokennel)
+    [HttpPost("forgot-password")]
+    public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto model)
+    {
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return Ok("If this email is registered, you will receive a password reset link.");
+        }
+
+        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+        // TODO kiszervezni a Base URL-t!
+        var resetLink = $"https://localhost:7264/api/auth/reset-password?email={user.Email}&token={Uri.EscapeDataString(token)}";
+
+        await _emailSender.SendEmailAsync(user.Email!, "Password Reset",
+            $"Click <a href='{resetLink}'>here</a> to reset your password.");
+
+        return Ok("If this email is registered, you will receive a password reset link.");
+    }
+
+    [HttpGet("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromQuery] string email, [FromQuery] string token)
+    {
+        if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+        {
+            return BadRequest("Invalid password reset request.");
+        }
+
+        // Token ellenőrzése a service-ben
+        var tokenUsed = await _userService.IsTokenUsed(token);
+        if (tokenUsed)
+        {
+            return BadRequest("This password reset link has already been used.");
+        }
+
+        return Ok(new { Email = email, Token = token });
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
+    {
+        var user = await _userManager.FindByEmailAsync(model.Email);
+        if (user == null)
+        {
+            return BadRequest("Invalid request.");
+        }
+
+        // Ellenőrizzük, hogy a token már fel lett-e használva
+        var tokenUsed = await _userService.IsTokenUsed(model.Token);
+        if (tokenUsed)
+        {
+            return BadRequest("This password reset link has already been used.");
+        }
+
+        var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+        if (result.Succeeded)
+        {
+            // Token mentése az adatbázisba
+            await _userService.AddUsedTokenAsync(model.Email, model.Token);
+            return Ok("Password has been reset successfully.");
+        }
+
+        return BadRequest(result.Errors);
     }
 }

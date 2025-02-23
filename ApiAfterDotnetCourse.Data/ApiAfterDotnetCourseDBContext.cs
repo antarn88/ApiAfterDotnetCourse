@@ -8,6 +8,7 @@ namespace ApiAfterDotnetCourse.Data;
 public class ApiAfterDotnetCourseDBContext : IdentityDbContext<ApplicationUser, IdentityRole<int>, int>
 {
     public ApiAfterDotnetCourseDBContext(DbContextOptions<ApiAfterDotnetCourseDBContext> options) : base(options) { }
+    public DbSet<UsedToken> UsedTokens { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

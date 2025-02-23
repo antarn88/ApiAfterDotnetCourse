@@ -39,6 +39,11 @@ namespace ApiAfterDotnetCourse.WebAPI
                 options.SignIn.RequireConfirmedAccount = true;
             });
 
+            builder.Services.Configure<DataProtectionTokenProviderOptions>(options =>
+            {
+                options.TokenLifespan = TimeSpan.FromMinutes(30); // Jelszó helyreállítási token érvényessége fél óra
+            });
+
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();

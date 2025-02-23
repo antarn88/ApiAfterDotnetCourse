@@ -6,6 +6,8 @@ namespace ApiAfterDotnetCourse.Bll.Interfaces;
 
 public interface IUserService
 {
-  Task<List<ApplicationUser>> GetAllUsersAsync();
-  Task<IdentityResult> RegisterUserAsync(CreateUserDto dto, Func<string, string, string> generateConfirmationLink);
+    Task<List<ApplicationUser>> GetAllUsersAsync();
+    Task<IdentityResult> RegisterUserAsync(CreateUserDto dto, Func<string, string, string> generateConfirmationLink);
+    Task<bool> IsTokenUsed(string token);
+    Task AddUsedTokenAsync(string email, string token);
 }
