@@ -51,7 +51,7 @@ public class AuthController : ControllerBase
         }
 
         // Token generálás
-        var token = GenerateJwtToken(user);
+        var token = await GenerateJwtToken(user);
 
         return Ok(new
         {
@@ -67,14 +67,21 @@ public class AuthController : ControllerBase
     }
 
     // TODO esetleg kiszervezni servicebe!
-    private string GenerateJwtToken(ApplicationUser user)
+    private async Task<string> GenerateJwtToken(ApplicationUser user)
     {
         var authClaims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                new Claim(ClaimTypes.Name, user.UserName!),
-                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-            };
+        {
+            new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
+            new Claim(ClaimTypes.Name, user.UserName!),
+            new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
+        };
+
+        // Role-ok hozzáadása
+        var roles = await _userManager.GetRolesAsync(user);
+        foreach (var role in roles)
+        {
+            authClaims.Add(new Claim(ClaimTypes.Role, role));
+        }
 
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Secret"]!));
 

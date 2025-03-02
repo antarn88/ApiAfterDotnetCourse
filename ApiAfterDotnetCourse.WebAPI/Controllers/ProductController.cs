@@ -7,7 +7,7 @@ namespace ApiAfterDotnetCourse.WebAPI.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Policy = "RequiredAdminRole")] // Csak Adminok férhetnek hozzá
+[Authorize(AuthenticationSchemes = "Bearer", Policy = "RequiredAdminRole")] // Csak Adminok férhetnek hozzá
 public class ProductController : ControllerBase
 {
     private readonly IProductService _productService;
@@ -43,10 +43,6 @@ public class ProductController : ControllerBase
         {
             var product = await _productService.CreateProductAsync(dto);
             return CreatedAtAction(nameof(GetProducts), new { id = product.ProductId }, product);
-        }
-        catch (UnauthorizedAccessException)
-        {
-            return Forbid("Nincs jogosultságod a művelet végrehajtásához.");
         }
         catch (Exception ex)
         {
