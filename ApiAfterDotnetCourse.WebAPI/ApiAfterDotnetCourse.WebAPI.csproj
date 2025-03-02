@@ -21,4 +21,8 @@
     <ProjectReference Include="..\ApiAfterDotnetCourse.Bll\ApiAfterDotnetCourse.Bll.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Middlewares\" />
+  </ItemGroup>
+
 </Project>

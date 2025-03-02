@@ -56,6 +56,14 @@ namespace ApiAfterDotnetCourse.WebAPI
             builder.Services.AddScoped<IRoleSeedService, RoleSeedService>();
             builder.Services.AddScoped<IUserSeedService, UserSeedService>();
             builder.Services.AddScoped<IUserService, UserService>();
+            builder.Services.AddScoped<IProductService, ProductService>();
+
+            // Policy-k
+            builder.Services.AddAuthorization(auth =>
+            {
+                auth.AddPolicy("RequiredUserRole", policy => policy.RequireRole("Users"));
+                auth.AddPolicy("RequiredAdminRole", policy => policy.RequireRole("Admins"));
+            });
 
             // JWT tokengenerálás
             builder.Services.AddAuthentication()
